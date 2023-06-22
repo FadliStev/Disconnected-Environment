@@ -35,6 +35,8 @@
             this.btnOpen = new System.Windows.Forms.Button();
             this.nmp = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.idp = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -103,11 +105,29 @@
             this.label1.TabIndex = 6;
             this.label1.Text = "Nama Prodi";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(119, 217);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(53, 16);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "Id Prodi";
+            // 
+            // idp
+            // 
+            this.idp.Location = new System.Drawing.Point(226, 214);
+            this.idp.Name = "idp";
+            this.idp.Size = new System.Drawing.Size(207, 22);
+            this.idp.TabIndex = 8;
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.idp);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.nmp);
             this.Controls.Add(this.btnOpen);
@@ -132,5 +152,7 @@
         private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.TextBox nmp;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox idp;
     }
 }

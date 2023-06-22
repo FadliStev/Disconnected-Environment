@@ -13,21 +13,19 @@ namespace Disconnected_Environment
 {
     public partial class Form4 : Form
     {
-        private string stringConnection = "data source= FADLISTEV\\FADLI036" +
-           "database=Kampus;User ID=sa;Password=fad036";
+        private string stringConnection = "data source= FADLISTEV\\FADLI036;database=Kampus;User ID=sa;Password=fad036";
         private SqlConnection koneksi;
 
         private void refreshform()
         {
-            cbxNama.Enabled = true;
-            cbxStatusMahasiswa.Enabled = true;
-            cbxTahunMasuk.Enabled = true;
-            cbxNama.SelectedIndex = -1;
+            cbxNama.Enabled = false;
+            cbxStatusMahasiswa.Enabled = false;
+            cbxTahunMasuk.Enabled = false;
             cbxStatusMahasiswa.SelectedIndex = -1;
             cbxTahunMasuk.SelectedIndex = -1;
-            txtNIM.Visible = true;
-            btnSave.Enabled = true;
-            btnClear.Enabled = true;
+            txtNIM.Visible = false;
+            btnSave.Enabled = false;
+            btnClear.Enabled = false;
             btnAdd.Enabled = true;
         }
         public Form4()
@@ -51,18 +49,15 @@ namespace Disconnected_Environment
         private void cbNama()
         {
             koneksi.Open();
-            string str = "select nama_mahasiswa from dbo.Mahasiswa where not EXIST" +
-                "(select id_status from dbo.status_mahasiswa where status_mahasiswa.nim = mahasiswa.nim)";      
+            string str = "SELECT nama_mahasiswa FROM Mahasiswa";
             SqlCommand cmd = new SqlCommand(str, koneksi);
-            SqlDataAdapter da = new SqlDataAdapter(str, koneksi);
-            DataSet ds = new DataSet();
-            da.Fill(ds);
-            cmd.ExecuteReader();
+            SqlDataReader dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                cbxNama.Items.Add(dr.GetString(0));
+            }
+            dr.Close();
             koneksi.Close();
-
-            cbxNama.DisplayMember = "nama_mahasiswa";
-            cbxNama.ValueMember = "NIM";
-            cbxNama.DataSource = ds.Tables[0];
 
         }
 
@@ -87,22 +82,32 @@ namespace Disconnected_Environment
 
         private void cbxNama_SelectedIndexChanged(object sender, EventArgs e)
         {
-            koneksi.Open();
-            string nim = "";
-            string strs = "select NIM from dbo.Mahasiswa where nama_mahasiswa = @nm";
-            SqlCommand cm = new SqlCommand(strs, koneksi);
-            cm.CommandType = CommandType.Text;
-            cm.Parameters.Add(new SqlParameter("@nm", cbxNama.Text));
-            SqlDataReader dr = cm.ExecuteReader();
-            while (dr.Read())
-            {
-                nim = dr["NIM"].ToString();
+            string selectedName = cbxNama.SelectedItem.ToString();
 
+
+            koneksi.Open();
+            string str = "SELECT nim FROM Mahasiswa WHERE nama_mahasiswa = @nama_mahasiswa";
+            SqlCommand cm = new SqlCommand(str, koneksi);
+            cm.Parameters.AddWithValue("@nama_mahasiswa", selectedName);
+            SqlDataReader dr = cm.ExecuteReader();
+
+            if (dr.Read())
+            {
+                string nim = dr.GetString(0);
+                txtNIM.Text = nim;
             }
+            else
+            {
+                txtNIM.Text = "";
+            }
+
             dr.Close();
             koneksi.Close();
-
-            txtNIM.Text = nim;
+        }
+        private void btnOpen_Click(object sender, EventArgs e)
+        {
+            dataGridView();
+            btnOpen.Enabled = false;
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -128,38 +133,41 @@ namespace Disconnected_Environment
             string kodeStatus = "";
             koneksi.Open();
 
-            string str = "select count (*) from dbo.status_mahasiswa";
+            string str = "select count (*) from dbo.Status_mahasiswa";
             SqlCommand cm = new SqlCommand(str, koneksi);
             count = (int)cm.ExecuteScalar();
             if (count == 0)
             {
                 kodeStatus = "1";
-
             }
             else
             {
-                string queryString = "select Max(id_status) from dbo.status_mahasiswa";
-                SqlCommand cmStatusMahasiswaSum = new SqlCommand(str, koneksi);
-                int totalStatusMahasiswa = (int)cmStatusMahasiswaSum.ExecuteScalar();
-                int finalKodeStatusInt = totalStatusMahasiswa + 1;
-                kodeStatus = Convert.ToString(finalKodeStatusInt);
+                string querryString = "SELECT TOP 1 id_status FROM dbo.Status_mahasiswa ORDER BY id_status DESC";
+                cm = new SqlCommand(querryString, koneksi);
+                SqlCommand cmStatusMahasiswa = new SqlCommand(querryString, koneksi);
+                SqlDataReader dr = cm.ExecuteReader();
+                if (dr.Read())
+                {
+                    tempKodeStatus = dr.GetString(0);
+                }
+                dr.Close();
+                int tempKode = int.Parse(tempKodeStatus);
+                tempKode++;
+                kodeStatus = tempKode.ToString();
             }
-            string queryStrings = "insert into dbo.status_mahasiswa (id_status,nim,status_mahasiswa, tahun_masuk" +
-                "values(@ids, @NIM, @sm, @tm)";
-            SqlCommand cmd = new SqlCommand(queryStrings, koneksi);
+            string queryString = "INSERT INTO dbo.Status_mahasiswa (id_status, nim, status_mahasiswa, tahun_masuk) VALUES (@id_status, @nim, @status_mahasiswa, @tahun_masuk)";
+            SqlCommand cmd = new SqlCommand(queryString, koneksi);
             cmd.CommandType = CommandType.Text;
-
-            cmd.Parameters.Add(new SqlParameter("ids", kodeStatus));
+            cmd.Parameters.Add(new SqlParameter("id_status", kodeStatus));
             cmd.Parameters.Add(new SqlParameter("NIM", nim));
-            cmd.Parameters.Add(new SqlParameter("sm", statusMahasiswa));
-            cmd.Parameters.Add(new SqlParameter("tm", tahunMasuk));
+            cmd.Parameters.Add(new SqlParameter("status_mahasiswa", statusMahasiswa));
+            cmd.Parameters.Add(new SqlParameter("tahun_masuk", tahunMasuk));
             cmd.ExecuteNonQuery();
             koneksi.Close();
-
-            MessageBox.Show("Data Berhasil Disimpan", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("Data berhasil disimpan", "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             refreshform();
             dataGridView();
-            
+
         }
 
         private void btnClear_Click(object sender, EventArgs e)
@@ -180,10 +188,6 @@ namespace Disconnected_Environment
 
         }
 
-        private void btnOpen_Click(object sender, EventArgs e)
-        {
-            dataGridView();
-            btnOpen.Enabled = false;
-        }
+       
     }
 }

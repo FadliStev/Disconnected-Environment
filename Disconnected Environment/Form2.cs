@@ -13,16 +13,15 @@ namespace Disconnected_Environment
 {
     public partial class Form2 : Form
     {
-        private string stringConnection = "data source= FADLISTEV\\FADLI036" +
-            "database=Kampus;User ID=sa;Password=fad036";
+        private string stringConnection = "data source= FADLISTEV\\FADLI036;database=Kampus;User ID=sa;Password=fad036";
         private SqlConnection koneksi;
 
         private void refreshform()
         {
             nmp.Text = "";
-            nmp.Enabled = true;
-            btnSave.Enabled = true;
-            btnClear.Enabled = true;
+            nmp.Enabled = false;
+            btnSave.Enabled = false;
+            btnClear.Enabled = false;
         }
 
         public Form2()
@@ -35,7 +34,7 @@ namespace Disconnected_Environment
         private void dataGridView()
         {
             koneksi.Open();
-            string str = "select nama_prodi from dbo.Prodi";
+            string str = "select*from dbo.Prodi";
             SqlDataAdapter da = new SqlDataAdapter(str, koneksi);
             DataSet ds = new DataSet();
             da.Fill(ds);
@@ -46,7 +45,7 @@ namespace Disconnected_Environment
         private void btnOpen_Click(object sender, EventArgs e)
         {
             dataGridView();
-            btnOpen.Enabled = true;
+            btnOpen.Enabled = false;
         }
 
 
@@ -63,10 +62,15 @@ namespace Disconnected_Environment
             btnSave.Enabled = true;
             btnClear.Enabled = true;
         }
+        private void btnClear_Click_1(object sender, EventArgs e)
+        {
+            refreshform();
+        }
 
         private void btnSave_Click_1(object sender, EventArgs e)
         {
             string nmProdi = nmp.Text;
+            string idProdi = idp.Text;
 
             if (nmProdi == "")
             {
@@ -74,11 +78,13 @@ namespace Disconnected_Environment
             }
             else
             {
-                koneksi.Close();
-                string str = "insert into dbo.Prodi (nama_prodi)" + "values(@id";
+                koneksi.Open();
+                string str = "insert into dbo.Prodi (id_prodi,nama_prodi)" + "values(@id_prodi, @nama_prodi)";
                 SqlCommand cmd = new SqlCommand(str, koneksi);
                 cmd.CommandType = CommandType.Text;
-                cmd.Parameters.Add(new SqlParameter("id", nmProdi));
+                cmd.Parameters.Add(new SqlParameter("id_prodi", idProdi));
+                cmd.Parameters.Add(new SqlParameter("nama_prodi", nmProdi));
+                cmd.ExecuteNonQuery();
 
                 koneksi.Close();
                 MessageBox.Show("Data Berhasil Disimpan", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -87,11 +93,14 @@ namespace Disconnected_Environment
             }
         }
 
-        private void btnClear_Click_1(object sender, EventArgs e)
+        private void Halaman_data_prodi_FormClosed(object sender, FormClosedEventArgs e)
         {
-            refreshform();
+            Form hu = new Form();
+            hu.Show();
+            this.Hide();
         }
 
-        
+
+
     }
 }
